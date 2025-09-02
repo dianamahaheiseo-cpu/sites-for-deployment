@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andar Bahar - Ezugi Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes cardDeal {
+            0% { transform: translateY(-100px) rotate(-10deg); opacity: 0; }
+            100% { transform: translateY(0) rotate(0); opacity: 1; }
+        }
+        
+        @keyframes chipPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .card-animation {
+            animation: cardDeal 0.5s ease-out forwards;
+        }
+        
+        .chip-animation {
+            animation: chipPulse 1.5s infinite;
+        }
+        
+        .card {
+            width: 100px;
+            height: 150px;
+            perspective: 1000px;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-front {
+            background-color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, #d10000, #8e0000);
+            border: 3px solid gold;
+        }
+        
+        .suit-red {
+            color: red;
+        }
+        
+        .suit-black {
+            color: black;
+        }
+        
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .card-suit {
+            font-size: 1.5rem;
+        }
+        
+        .chip {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .chip:hover {
+            transform: scale(1.1);
+        }
+        
+        .chip-10 {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: 2px solid #1a5276;
+        }
+        
+        .chip-50 {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: 2px solid #1e8449;
+        }
+        
+        .chip-100 {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: 2px solid #922b21;
+        }
+        
+        .chip-500 {
+            background: linear-gradient(135deg, #f39c12, #d35400);
+            border: 2px solid #b03a2e;
+        }
+        
+        .chip-1000 {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border: 2px solid #6c3483;
+        }
+        
+        .bet-placed {
+            box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.7);
+        }
+        
+        .timer-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .timer-circle svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .timer-circle circle {
+            fill: none;
+            stroke-width: 5;
+            stroke-linecap: round;
+        }
+        
+        .progress-ring-circle {
+            stroke-dasharray: 188;
+            stroke-dashoffset: 188;
+            transition: stroke-dashoffset 1s linear;
+        }
+        
+        .game-table {
+            background: linear-gradient(135deg, #1a6e1a, #0d4d0d);
+            border-radius: 20px;
+            border: 12px solid #8B4513;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-table::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 60%, rgba(0, 0, 0, 0.3) 100%);
+            pointer-events: none;
+        }
+        
+        .table-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                width: 70px;
+                height: 105px;
+            }
+            
+            .card-value {
+                font-size: 1.5rem;
+            }
+            
+            .card-suit {
+                font-size: 1rem;
+            }
+            
+            .chip {
+                width: 30px;
+                height: 30px;
+                font-size: 0.7rem;
+            }
+            
+            .timer-circle {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-6xl">
+        <!-- Game Header -->
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center">
+                <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600">
+                    <i class="fas fa-cards mr-2"></i> Andar Bahar
+                </h1>
+                <span class="ml-4 px-3 py-1 bg-yellow-600 rounded-full text-xs font-semibold">EZUGI STYLE</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-gray-800 px-4 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-coins text-yellow-400 mr-2"></i>
+                    <span id="balance" class="font-bold">10,000</span>
+                </div>
+                <button id="sound-toggle" class="bg-gray-800 p-2 rounded-full hover:bg-gray-700">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <button id="help-btn" class="bg-gray-800 p-2 rounded-full hover:bg-gray-700">
+                    <i class="fas fa-question"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Table -->
+        <div class="game-table relative mb-6">
+            <div class="table-pattern"></div>
+            
+            <!-- Game Info -->
+            <div class="absolute top-4 left-4 z-10">
+                <div class="bg-black bg-opacity-70 px-3 py-2 rounded-lg">
+                    <div class="text-sm text-gray-300">Round #<span id="round-number">1258</span></div>
+                    <div class="flex items-center">
+                        <div class="timer-circle bg-black bg-opacity-80 mr-3">
+                            <svg viewBox="0 0 64 64">
+                                <circle class="text-gray-700" cx="32" cy="32" r="30" stroke="currentColor"></circle>
+                                <circle class="progress-ring-circle text-yellow-400" cx="32" cy="32" r="30" stroke="currentColor"></circle>
+                            </svg>
+                            <span id="timer" class="text-xl font-bold">15</span>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400">BETTING TIME</div>
+                            <div class="font-bold">Place your bets!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Joker Card Area -->
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-center">
+                <div class="mb-2 text-sm font-semibold bg-black bg-opacity-50 px-2 py-1 rounded">JOKER CARD</div>
+                <div id="joker-card" class="card mx-auto">
+                    <div class="card-inner">
+                        <div class="card-front flex flex-col items-center justify-center">
+                            <div class="card-value suit-red">A</div>
+                            <div class="card-suit suit-red">♥</div>
+                        </div>
+                        <div class="card-back"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Andar (Left) Side -->
+            <div class="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 z-10 text-center">
+                <div class="mb-2 text-sm font-semibold bg-black bg-opacity-50 px-2 py-1 rounded">ANDAR</div>
+                <div id="andar-cards" class="flex space-x-2 justify-center"></div>
+                <div id="andar-bets" class="mt-4 flex justify-center space-x-1">
+                    <div class="chip chip-10" data-value="10" data-side="andar">10</div>
+                    <div class="chip chip-50" data-value="50" data-side="andar">50</div>
+                    <div class="chip chip-100" data-value="100" data-side="andar">100</div>
+                    <div class="chip chip-500" data-value="500" data-side="andar">500</div>
+                    <div class="chip chip-1000" data-value="1000" data-side="andar">1K</div>
+                </div>
+                <div id="andar-total" class="mt-2 text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Bet: 0</div>
+            </div>
+            
+            <!-- Bahar (Right) Side -->
+            <div class="absolute top-1/2 right-1/4 transform translate-x-1/2 -translate-y-1/2 z-10 text-center">
+                <div class="mb-2 text-sm font-semibold bg-black bg-opacity-50 px-2 py-1 rounded">BAHAR</div>
+                <div id="bahar-cards" class="flex space-x-2 justify-center"></div>
+                <div id="bahar-bets" class="mt-4 flex justify-center space-x-1">
+                    <div class="chip chip-10" data-value="10" data-side="bahar">10</div>
+                    <div class="chip chip-50" data-value="50" data-side="bahar">50</div>
+                    <div class="chip chip-100" data-value="100" data-side="bahar">100</div>
+                    <div class="chip chip-500" data-value="500" data-side="bahar">500</div>
+                    <div class="chip chip-1000" data-value="1000" data-side="bahar">1K</div>
+                </div>
+                <div id="bahar-total" class="mt-2 text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Bet: 0</div>
+            </div>
+            
+            <!-- Game Controls -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex space-x-4">
+                <button id="deal-btn" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    DEAL CARD
+                </button>
+                <button id="clear-bets-btn" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-full font-bold shadow-lg">
+                    CLEAR BETS
+                </button>
+            </div>
+            
+            <!-- Previous Round Info -->
+            <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-70 px-3 py-2 rounded-lg">
+                <div class="text-sm text-gray-300">Previous Round</div>
+                <div class="flex items-center mt-1">
+                    <div class="text-xs mr-2">Winner:</div>
+                    <div id="prev-winner" class="font-bold text-green-400">ANDAR</div>
+                </div>
+                <div class="text-xs mt-1">Cards dealt: <span id="prev-cards">7</span></div>
+            </div>
+        </div>
+        
+        <!-- Game History -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold mb-3 flex items-center">
+                <i class="fas fa-history mr-2 text-yellow-400"></i> Game History
+            </h3>
+            <div id="game-history" class="flex space-x-2 overflow-x-auto pb-2">
+                <!-- History items will be added here -->
+            </div>
+        </div>
+        
+        <!-- Game Rules Modal -->
+        <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+            <div class="bg-gray-800 rounded-lg max-w-md w-full p-6 relative">
+                <button id="close-rules" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h3 class="text-xl font-bold mb-4 text-yellow-400">
+                    <i class="fas fa-info-circle mr-2"></i> Andar Bahar Rules
+                </h3>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <p>1. A joker card is drawn at the start of each round.</p>
+                    <p>2. You can bet on either ANDAR (left) or BAHAR (right).</p>
+                    <p>3. Cards are alternately dealt to ANDAR and BAHAR positions.</p>
+                    <p>4. The game continues until a card matching the joker's value appears.</p>
+                    <p>5. If the matching card appears on ANDAR, ANDAR bets win (1:1 payout).</p>
+                    <p>6. If the matching card appears on BAHAR, BAHAR bets win (1:1 payout).</p>
+                    <p>7. You can place multiple bets during the betting period.</p>
+                    <p>8. The betting period lasts 15 seconds before cards are dealt.</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-700 text-xs text-gray-400">
+                    <p>Note: This is a simulation for entertainment purposes only.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                balance: 10000,
+                currentBet: { andar: 0, bahar: 0 },
+                gamePhase: 'betting', // betting, dealing, results
+                timer: 15,
+                roundNumber: 1258,
+                jokerCard: null,
+                dealtCards: [],
+                winner: null,
+                history: [],
+                soundEnabled: true
+            };
+            
+            // DOM elements
+            const balanceEl = document.getElementById('balance');
+            const timerEl = document.getElementById('timer');
+            const roundNumberEl = document.getElementById('round-number');
+            const jokerCardEl = document.getElementById('joker-card');
+            const andarCardsEl = document.getElementById('andar-cards');
+            const baharCardsEl = document.getElementById('bahar-cards');
+            const andarTotalEl = document.getElementById('andar-total');
+            const baharTotalEl = document.getElementById('bahar-total');
+            const dealBtn = document.getElementById('deal-btn');
+            const clearBetsBtn = document.getElementById('clear-bets-btn');
+            const prevWinnerEl = document.getElementById('prev-winner');
+            const prevCardsEl = document.getElementById('prev-cards');
+            const gameHistoryEl = document.getElementById('game-history');
+            const rulesModal = document.getElementById('rules-modal');
+            const helpBtn = document.getElementById('help-btn');
+            const closeRulesBtn = document.getElementById('close-rules');
+            const soundToggleBtn = document.getElementById('sound-toggle');
+            
+            // Card suits and values
+            const suits = ['♥', '♦', '♣', '♠'];
+            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            
+            // Initialize game
+            initGame();
+            
+            // Event listeners
+            document.querySelectorAll('.chip').forEach(chip => {
+                chip.addEventListener('click', handleChipClick);
+            });
+            
+            dealBtn.addEventListener('click', dealNextCard);
+            clearBetsBtn.addEventListener('click', clearBets);
+            helpBtn.addEventListener('click', () => rulesModal.classList.remove('hidden'));
+            closeRulesBtn.addEventListener('click', () => rulesModal.classList.add('hidden'));
+            soundToggleBtn.addEventListener('click', toggleSound);
+            
+            // Initialize game
+            function initGame() {
+                updateUI();
+                startTimer();
+                generateJokerCard();
+                
+                // Add some history items for demo
+                addHistoryItem('ANDAR', 5);
+                addHistoryItem('BAHAR', 9);
+                addHistoryItem('ANDAR', 3);
+                addHistoryItem('BAHAR', 7);
+                addHistoryItem('ANDAR', 6);
+            }
+            
+            // Handle chip click
+            function handleChipClick(e) {
+                if (gameState.gamePhase !== 'betting') return;
+                
+                const value = parseInt(e.target.dataset.value);
+                const side = e.target.dataset.side;
+                
+                if (gameState.balance >= value) {
+                    gameState.currentBet[side] += value;
+                    gameState.balance -= value;
+                    
+                    // Add visual feedback
+                    e.target.classList.add('chip-animation');
+                    setTimeout(() => {
+                        e.target.classList.remove('chip-animation');
+                    }, 1500);
+                    
+                    updateUI();
+                    
+                    if (gameState.soundEnabled) {
+                        playSound('chip');
+                    }
+                } else {
+                    // Not enough balance
+                    if (gameState.soundEnabled) {
+                        playSound('error');
+                    }
+                    
+                    // Show error feedback
+                    const chip = e.target;
+                    chip.classList.add('bg-red-500');
+                    setTimeout(() => {
+                        chip.classList.remove('bg-red-500');
+                    }, 500);
+                }
+            }
+            
+            // Clear all bets
+            function clearBets() {
+                if (gameState.gamePhase !== 'betting') return;
+                
+                gameState.balance += gameState.currentBet.andar + gameState.currentBet.bahar;
+                gameState.currentBet = { andar: 0, bahar: 0 };
+                
+                updateUI();
+                
+                if (gameState.soundEnabled) {
+                    playSound('clear');
+                }
+            }
+            
+            // Deal next card
+            function dealNextCard() {
+                if (gameState.gamePhase !== 'dealing') return;
+                
+                // Determine which side gets the card (alternate starting with andar)
+                const side = gameState.dealtCards.length % 2 === 0 ? 'andar' : 'bahar';
+                
+                // Generate a random card that hasn't been dealt yet
+                let card;
+                do {
+                    card = generateRandomCard();
+                } while (gameState.dealtCards.some(c => c.value === card.value && c.suit === card.suit));
+                
+                gameState.dealtCards.push(card);
+                
+                // Display the card
+                displayCard(card, side);
+                
+                // Check if this card matches the joker
+                if (card.value === gameState.jokerCard.value) {
+                    // Game over
+                    gameState.winner = side;
+                    endRound();
+                } else if (gameState.dealtCards.length >= 52) {
+                    // All cards dealt (shouldn't happen in practice)
+                    gameState.winner = 'none';
+                    endRound();
+                }
+                
+                updateUI();
+                
+                if (gameState.soundEnabled) {
+                    playSound('card');
+                }
+            }
+            
+            // Display a card on the table
+            function displayCard(card, side) {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card card-animation';
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front flex flex-col items-center justify-center">
+                            <div class="card-value ${card.suit === '♥' || card.suit === '♦' ? 'suit-red' : 'suit-black'}">${card.value}</div>
+                            <div class="card-suit ${card.suit === '♥' || card.suit === '♦' ? 'suit-red' : 'suit-black'}">${card.suit}</div>
+                        </div>
+                        <div class="card-back"></div>
+                    </div>
+                `;
+                
+                // Flip the card after a delay
+                setTimeout(() => {
+                    cardEl.classList.add('flipped');
+                }, 500);
+                
+                if (side === 'andar') {
+                    andarCardsEl.appendChild(cardEl);
+                } else {
+                    baharCardsEl.appendChild(cardEl);
+                }
+            }
+            
+            // End the current round
+            function endRound() {
+                gameState.gamePhase = 'results';
+                
+                // Calculate winnings
+                if (gameState.winner !== 'none') {
+                    const winnings = gameState.currentBet[gameState.winner] * 2;
+                    gameState.balance += winnings;
+                    
+                    // Add to history
+                    addHistoryItem(gameState.winner.toUpperCase(), gameState.dealtCards.length);
+                    
+                    // Update previous round info
+                    prevWinnerEl.textContent = gameState.winner.toUpperCase();
+                    prevCardsEl.textContent = gameState.dealtCards.length;
+                    prevWinnerEl.className = gameState.winner === 'andar' ? 'font-bold text-green-400' : 'font-bold text-blue-400';
+                }
+                
+                updateUI();
+                
+                if (gameState.soundEnabled) {
+                    playSound(gameState.winner !== 'none' ? 'win' : 'lose');
+                }
+                
+                // Start new round after delay
+                setTimeout(() => {
+                    resetForNewRound();
+                }, 5000);
+            }
+            
+            // Reset for a new round
+            function resetForNewRound() {
+                gameState.roundNumber++;
+                gameState.currentBet = { andar: 0, bahar: 0 };
+                gameState.gamePhase = 'betting';
+                gameState.timer = 15;
+                gameState.jokerCard = null;
+                gameState.dealtCards = [];
+                gameState.winner = null;
+                
+                // Clear cards from table
+                andarCardsEl.innerHTML = '';
+                baharCardsEl.innerHTML = '';
+                
+                // Generate new joker card
+                generateJokerCard();
+                
+                // Start timer
+                startTimer();
+                
+                updateUI();
+            }
+            
+            // Generate a joker card
+            function generateJokerCard() {
+                gameState.jokerCard = generateRandomCard();
+                
+                // Update joker card display
+                const front = jokerCardEl.querySelector('.card-front');
+                front.innerHTML = `
+                    <div class="card-value ${gameState.jokerCard.suit === '♥' || gameState.jokerCard.suit === '♦' ? 'suit-red' : 'suit-black'}">${gameState.jokerCard.value}</div>
+                    <div class="card-suit ${gameState.jokerCard.suit === '♥' || gameState.jokerCard.suit === '♦' ? 'suit-red' : 'suit-black'}">${gameState.jokerCard.suit}</div>
+                `;
+                
+                // Flip the card after a delay
+                setTimeout(() => {
+                    jokerCardEl.classList.add('flipped');
+                }, 1000);
+            }
+            
+            // Generate a random card
+            function generateRandomCard() {
+                const suit = suits[Math.floor(Math.random() * suits.length)];
+                const value = values[Math.floor(Math.random() * values.length)];
+                return { suit, value };
+            }
+            
+            // Start the betting timer
+            function startTimer() {
+                const timerCircle = document.querySelector('.progress-ring-circle');
+                const circumference = 2 * Math.PI * 30;
+                const interval = setInterval(() => {
+                    gameState.timer--;
+                    timerEl.textContent = gameState.timer;
+                    
+                    // Update progress ring
+                    const offset = circumference - (gameState.timer / 15) * circumference;
+                    timerCircle.style.strokeDashoffset = offset;
+                    
+                    if (gameState.timer <= 0) {
+                        clearInterval(interval);
+                        gameState.gamePhase = 'dealing';
+                        updateUI();
+                        
+                        if (gameState.soundEnabled) {
+                            playSound('timer-end');
+                        }
+                    }
+                }, 1000);
+            }
+            
+            // Add item to game history
+            function addHistoryItem(winner, cardsDealt) {
+                gameState.history.unshift({ winner, cardsDealt });
+                
+                if (gameState.history.length > 10) {
+                    gameState.history.pop();
+                }
+                
+                // Update history display
+                gameHistoryEl.innerHTML = '';
+                gameState.history.forEach(item => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = `flex flex-col items-center justify-center bg-gray-700 rounded-lg px-3 py-2 min-w-[50px] ${item.winner === 'ANDAR' ? 'border-l-4 border-green-500' : 'border-l-4 border-blue-500'}`;
+                    itemEl.innerHTML = `
+                        <div class="text-xs">${item.winner}</div>
+                        <div class="font-bold text-sm">${item.cardsDealt}</div>
+                    `;
+                    gameHistoryEl.appendChild(itemEl);
+                });
+            }
+            
+            // Toggle sound
+            function toggleSound() {
+                gameState.soundEnabled = !gameState.soundEnabled;
+                soundToggleBtn.innerHTML = gameState.soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+                
+                if (gameState.soundEnabled) {
+                    playSound('chip');
+                }
+            }
+            
+            // Play sound
+            function playSound(type) {
+                // In a real implementation, you would play actual sound files
+                console.log(`Playing sound: ${type}`);
+            }
+            
+            // Update UI based on game state
+            function updateUI() {
+                // Update balance
+                balanceEl.textContent = gameState.balance.toLocaleString();
+                
+                // Update round number
+                roundNumberEl.textContent = gameState.roundNumber;
+                
+                // Update bet totals
+                andarTotalEl.textContent = `Bet: ${gameState.currentBet.andar}`;
+                baharTotalEl.textContent = `Bet: ${gameState.currentBet.bahar}`;
+                
+                // Update button states
+                dealBtn.disabled = gameState.gamePhase !== 'dealing';
+                
+                // Update chip states
+                document.querySelectorAll('.chip').forEach(chip => {
+                    chip.style.opacity = gameState.gamePhase === 'betting' ? '1' : '0.5';
+                    chip.style.pointerEvents = gameState.gamePhase === 'betting' ? 'auto' : 'none';
+                });
+                
+                // Update bet highlights
+                document.querySelectorAll('[data-side="andar"]').forEach(el => {
+                    el.classList.toggle('bet-placed', gameState.currentBet.andar > 0);
+                });
+                
+                document.querySelectorAll('[data-side="bahar"]').forEach(el => {
+                    el.classList.toggle('bet-placed', gameState.currentBet.bahar > 0);
+                });
+            }
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Dishka2025/andar-bahar-ezugi" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
